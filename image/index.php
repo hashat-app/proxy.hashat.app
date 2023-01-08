@@ -3,38 +3,57 @@
 // The image URL to proxy
 $imageUrl = $_GET['url'];
 
-if (empty($imageUrl)) {
-    // Return an error if the URL is not set
-    http_response_code(400);
-    echo 'Error: No URL specified';
-    exit;
-}
+// Check that the proxy is only used on the domain "hashat.app"
+// if (!preg_match('/^https?:\/\/hashat\.app/', $_SERVER['HTTP_REFERER'])) {
+//     http_response_code(403);
+//     echo 'Error: This proxy can only be used on the domain "hashat.app"';
+//     exit;
+// }
 
-// Create a stream context with the HTTP headers from the request
-$options = [
-    'http' => [
-        'method' => 'GET',
-        'header' => implode("\r\n", [
-            'User-Agent: ' . $_SERVER['HTTP_USER_AGENT']
-        ]),
-    ],
-];
+// Initialize a cURL session
+$ch = curl_init($imageUrl);
 
-$context = stream_context_create($options);
+// Set the HTTP headers from the request
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'User-Agent: ' . $_SERVER['HTTP_USER_AGENT']
+]);
 
-// Load the image from the URL using the HTTP headers from the request
-$imageData = file_get_contents($imageUrl, false, $context);
+// Return the response as a string
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+// Execute the cURL request
+$imageData = curl_exec($ch);
 
 // Check if the file is an image
 $finfo = finfo_open(FILEINFO_MIME_TYPE);
 $mimeType = finfo_buffer($finfo, $imageData);
 if (strpos($mimeType, 'image/') === 0) {
     // Set the content type to the content type of the image
-    $contentType = get_headers($imageUrl, 1)['Content-Type'];
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     header('Content-Type: ' . $contentType);
 
-    // Output the image data
-    echo $imageData;
+    if (isset($_GET['thumb'])) {
+        if ($mimeType == 'image/jpeg') {
+            // Load the JPEG image as a thumbnail
+            $image = imagecreatefromjpeg($imageUrl);
+            $thumb = imagescale($image, 200);
+            imagejpeg($thumb);
+            imagedestroy($image);
+            imagedestroy($thumb);
+        } else {
+            // Load the image as a thumbnail
+            $image = imagecreatefromstring($imageData);
+            $thumb = imagescale($image, 100);
+            imagealphablending($thumb, true);
+            imagesavealpha($thumb, true);
+            imagepng($thumb);
+            imagedestroy($image);
+            imagedestroy($thumb);
+        }
+    } else {
+        // Output the image data
+        echo $imageData;
+    }
 } else {
     // Return an error if the file is not an image
     http_response_code(400);
@@ -42,3 +61,6 @@ if (strpos($mimeType, 'image/') === 0) {
 }
 
 finfo_close($finfo);
+
+// Close the cURL session
+curl_close($ch);
