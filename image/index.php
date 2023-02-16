@@ -32,24 +32,53 @@ if (strpos($mimeType, 'image/') === 0) {
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     header('Content-Type: ' . $contentType);
 
-    if (isset($_GET['thumb'])) {
-        if ($mimeType == 'image/jpeg') {
-            // Load the JPEG image as a thumbnail
-            $image = imagecreatefromjpeg($imageUrl);
-            $thumb = imagescale($image, 200);
-            imagejpeg($thumb);
-            imagedestroy($image);
-            imagedestroy($thumb);
-        } else {
-            // Load the image as a thumbnail
-            $image = imagecreatefromstring($imageData);
-            $thumb = imagescale($image, 100);
-            imagealphablending($thumb, true);
-            imagesavealpha($thumb, true);
-            imagepng($thumb);
-            imagedestroy($image);
-            imagedestroy($thumb);
+    if (isset($_GET['ratio'])) {
+        // Get the desired aspect ratio
+        $ratio = $_GET['ratio'];
+        $ratio_parts = explode(':', $ratio);
+        if (count($ratio_parts) != 2) {
+            http_response_code(400);
+            echo 'Error: Invalid aspect ratio';
+            exit;
         }
+        $ratio_width = $ratio_parts[0];
+        $ratio_height = $ratio_parts[1];
+
+        if ($mimeType == 'image/jpeg') {
+            // Load the JPEG image
+            $image = imagecreatefromjpeg($imageUrl);
+        } else {
+            // Load the image
+            $image = imagecreatefromstring($imageData);
+        }
+
+        // Get the current width and height of the image
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        // Calculate the new height and width based on the desired aspect ratio
+        $new_height = $width * ($ratio_height / $ratio_width);
+        $new_width = $height * ($ratio_width / $ratio_height);
+
+        // Crop the image to the desired aspect ratio
+        if ($new_height < $height) {
+            $y = ($height - $new_height) / 2;
+            $cropped_image = imagecrop($image, ['x' => 0, 'y' => $y, 'width' => $width, 'height' => $new_height]);
+        } else {
+            $x = ($width - $new_width) / 2;
+            $cropped_image = imagecrop($image, ['x' => $x, 'y' => 0, 'width' => $new_width, 'height' => $height]);
+        }
+
+        // Output the cropped image
+        if ($mimeType == 'image/jpeg') {
+            imagejpeg($cropped_image);
+        } else {
+            imagepng($cropped_image);
+        }
+
+        // Clean up
+        imagedestroy($image);
+        imagedestroy($cropped_image);
     } else {
         // Output the image data
         echo $imageData;
