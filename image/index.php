@@ -1,14 +1,21 @@
 <?php
 
-// The image URL to proxy
-$imageUrl = $_GET['url'];
-
 // Check that the proxy is only used on the domain "hashat.app"
 // if (!preg_match('/^https?:\/\/hashat\.app/', $_SERVER['HTTP_REFERER'])) {
 //     http_response_code(403);
 //     echo 'Error: This proxy can only be used on the domain "hashat.app"';
 //     exit;
 // }
+
+// The image URL to proxy
+$imageUrl = $_GET['url'];
+
+// Check if the URL is valid
+if (filter_var($imageUrl, FILTER_VALIDATE_URL) === false OR empty($imageUrl)) {
+    // display error image
+    header('Location: https://proxy.hashat.app/image/error-1.png');
+    exit;
+}
 
 // Initialize a cURL session
 $ch = curl_init($imageUrl);
@@ -21,8 +28,21 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 // Return the response as a string
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
+// Set the timeout to 3 seconds
+curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+
 // Execute the cURL request
 $imageData = curl_exec($ch);
+
+// Check if the request timed out
+if (curl_errno($ch) == CURLE_OPERATION_TIMEDOUT) {
+    // Display the error image
+    header('Content-Type: image/png');
+    $image = imagecreatefrompng('error-1.png');
+    imagepng($image);
+    imagedestroy($image);
+    exit;
+}
 
 // Check if the file is an image
 $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -37,8 +57,11 @@ if (strpos($mimeType, 'image/') === 0) {
         $ratio = $_GET['ratio'];
         $ratio_parts = explode(':', $ratio);
         if (count($ratio_parts) != 2) {
-            http_response_code(400);
-            echo 'Error: Invalid aspect ratio';
+            // display error image
+            header('Content-Type: image/png');
+            $image = imagecreatefrompng('error-2.png');
+            imagepng($image);
+            imagedestroy($image);
             exit;
         }
         $ratio_width = $ratio_parts[0];
@@ -84,9 +107,12 @@ if (strpos($mimeType, 'image/') === 0) {
         echo $imageData;
     }
 } else {
-    // Return an error if the file is not an image
-    http_response_code(400);
-    echo 'Error: The URL does not point to an image';
+    // display error image
+    header('Content-Type: image/png');
+    $image = imagecreatefrompng('error-3.png');
+    imagepng($image);
+    imagedestroy($image);
+    exit;
 }
 
 finfo_close($finfo);
