@@ -1,6 +1,6 @@
 # Hashat Proxy
 
-⚠️ Visit [this support article](https://go.hashat.app/proxy-troubleshoot) if you are a website owner and you encountered an error while embedding an image from your site on Hashat.
+⚠️ Visit [this support article](https://go.hashat.app/proxy-troubleshooting) if you are a website owner and you encountered an error while embedding an image from your site on Hashat.
 
 ___
 
