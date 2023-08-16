@@ -34,7 +34,7 @@ if ($_SERVER['HTTP_HOST'] !== 'hashat.app' AND $developement_mode === false) {
     exit;
 }
 ```
-Modify or remove this if-loop as you need. You can change hashat.app to everything you like to only allow the proxy to be used by your domain.
+Modify or remove this if-statement as you need. You can change hashat.app to everything you like to only allow the proxy to be used by your domain.
 
 ___
 
