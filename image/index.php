@@ -1,11 +1,15 @@
 <?php
 
+// If you want to use the proxy in developement mode, set the variable to true
+// In developement mode, the proxy will work on all domains
+$developement_mode = true;
+
 // Check that the proxy is only used on the domain "hashat.app"
 // ! [IMPORTANT] Change the domain to your own domain or remove the if statement if you want to use the proxy on all domains
-if ($_SERVER['HTTP_HOST'] !== 'hashat.app') {
+if ($_SERVER['HTTP_HOST'] !== 'hashat.app' AND $developement_mode === false) {
     // Display error image because the proxy is not used on the domain "hashat.app"
     header('Content-Type: image/webp');
-    $image = imagecreatefromwebp('error-4.webp');
+    $image = imagecreatefromwebp('error-images/error-4.webp');
     imagewebp($image);
     imagedestroy($image);
     exit;
@@ -23,7 +27,7 @@ error_reporting(E_ALL);
 if (filter_var($imageUrl, FILTER_VALIDATE_URL) === false OR empty($imageUrl)) {
     // Display error image because the URL is invalid
     header('Content-Type: image/webp');
-    $image = imagecreatefromwebp('error-1.webp');
+    $image = imagecreatefromwebp('error-images/error-1.webp');
     imagewebp($image);
     imagedestroy($image);
     exit;
@@ -52,7 +56,7 @@ $imageData = curl_exec($ch);
 if (curl_errno($ch) == CURLE_OPERATION_TIMEDOUT) {
     // Display the error image because the request timed out
     header('Content-Type: image/webp');
-    $image = imagecreatefromwebp('error-1.webp');
+    $image = imagecreatefromwebp('error-images/error-1.webp');
     imagewebp($image);
     imagedestroy($image);
     exit;
@@ -76,7 +80,7 @@ if (strpos($mime_type, 'image/') === 0) {
         if (count($ratio_parts) != 2) {
             // display error image
             header('Content-Type: image/webp');
-            $image = imagecreatefromwebp('error-2.webp');
+            $image = imagecreatefromwebp('error-images/error-2.webp');
             imagepng($image);
             imagedestroy($image);
             exit;
@@ -128,7 +132,7 @@ if (strpos($mime_type, 'image/') === 0) {
         if (count($size_parts) !== 2) {
             // Display error image because there are to less or to many size parts
             header('Content-Type: image/webp');
-            $image = imagecreatefromwebp('error-2.webp');
+            $image = imagecreatefromwebp('error-images/error-2.webp');
             imagepng($image);
             imagedestroy($image);
             exit;
@@ -168,7 +172,7 @@ if (strpos($mime_type, 'image/') === 0) {
 } else {
     // Display error image because the file is not an image
     header('Content-Type: image/webp');
-    $image = imagecreatefromwebp('error-3.webp');
+    $image = imagecreatefromwebp('error-images/error-3.webp');
     imagewebp($image);
     imagedestroy($image);
     exit;
