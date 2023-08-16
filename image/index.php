@@ -114,13 +114,7 @@ if (strpos($mime_type, 'image/') === 0) {
         }
 
         // Output the cropped image
-        if ($mime_type == 'image/jpeg') {
-            // generate webp image from jpeg
-            imagewebp($cropped_image);
-        } else {
-            // generate webp image from png
-            imagewebp($cropped_image);
-        }
+        imagewebp($cropped_image);
 
         // Clean up
         imagedestroy($image);
@@ -152,19 +146,25 @@ if (strpos($mime_type, 'image/') === 0) {
         $current_width = imagesx($image);
         $current_height = imagesy($image);
 
-        // Calculate the new height and width based on the desired size
-        $new_width = $width;
-        $new_height = $height;
+        // Do not scale the image. Only crop it
+        if ($current_width / $current_height > $width / $height) {
+            $new_width = $current_height * ($width / $height);
+            $new_height = $current_height;
+        } else {
+            $new_width = $current_width;
+            $new_height = $current_width * ($height / $width);
+        }
 
-        // Resize the image
-        $resized_image = imagescale($image, $new_width, $new_height);
+        // Crop the image to the desired size
+        $x = ($current_width - $new_width) / 2;
+        $y = ($current_height - $new_height) / 2;
+        $cropped_image = imagecrop($image, ['x' => $x, 'y' => $y, 'width' => $new_width, 'height' => $new_height]);
+
+        // Resize the image to the desired size
+        $resized_image = imagescale($cropped_image, $width, $height);
 
         // Output the resized image
         imagewebp($resized_image);
-
-        // Clean up
-        imagedestroy($image);
-        imagedestroy($resized_image);
     } else {
         // Output the image data
         echo $imageData;
