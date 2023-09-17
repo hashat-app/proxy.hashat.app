@@ -6,7 +6,7 @@ $developement_mode = true;
 
 // Check that the proxy is only used on the domain "hashat.app"
 // ! [IMPORTANT] Change the domain to your own domain or remove the if statement if you want to use the proxy on all domains
-if ($_SERVER['HTTP_HOST'] !== 'hashat.app' AND $developement_mode === false) {
+if (!preg_match('/^https?:\/\/hashat\.app/', $_SERVER['HTTP_REFERER']) AND $developement_mode === false) {
     // Display error image because the proxy is not used on the domain "hashat.app"
     header('Content-Type: image/webp');
     $image = imagecreatefromwebp('error-images/error-4.webp');
